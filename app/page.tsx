@@ -1,40 +1,48 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Gift, Plane, ShoppingBag } from 'lucide-react';
-import { CompanyForm } from '@/components/company-form';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Gift, Plane, ShoppingBag } from "lucide-react";
+import { CompanyForm } from "@/components/company-form";
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState('techcorp');
+  const [activeTab, setActiveTab] = useState("techcorp");
   const router = useRouter();
 
-  const companies = {
+  const companies: {
+    [key: string]: {
+      name: string;
+      icon: React.ComponentType<any>;
+      description: string;
+      color: string;
+      route: string;
+    };
+  } = {
     techcorp: {
-      name: 'TechCorp Solutions',
+      name: "TechCorp Solutions",
       icon: Gift,
-      description: 'Tech Rewards Program',
-      color: 'text-blue-600',
-      route: '/points/techcorp'
+      description: "Tech Rewards Program",
+      color: "text-blue-600",
+      route: "/points/techcorp",
     },
     retailmax: {
-      name: 'RetailMax Stores',
+      name: "RetailMax Stores",
       icon: ShoppingBag,
-      description: 'RetailMax Rewards Plus',
-      color: 'text-emerald-600',
-      route: '/points/retailmax'
+      description: "RetailMax Rewards Plus",
+      color: "text-emerald-600",
+      route: "/points/retailmax",
     },
     skyhigh: {
-      name: 'SkyHigh Airlines',
+      name: "SkyHigh Airlines",
       icon: Plane,
-      description: 'SkyHigh Miles Program',
-      color: 'text-indigo-600',
-      route: '/points/skyhigh'
-    }
+      description: "SkyHigh Miles Program",
+      color: "text-indigo-600",
+      route: "/points/skyhigh",
+    },
   };
 
   return (
@@ -70,9 +78,9 @@ export default function Home() {
                 <p className="text-sm text-gray-600">{company.description}</p>
               </div>
 
-              <CompanyForm 
-                company={key} 
-                onSubmit={(data) => router.push(`${company.route}?${data}`)} 
+              <CompanyForm
+                company={key}
+                onSubmit={(data) => router.push(`${company.route}?${data}`)}
               />
             </TabsContent>
           ))}
