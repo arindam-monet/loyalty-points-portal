@@ -42,7 +42,7 @@ export default function PointsPage({
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const company = companyConfigs[params.company];
+  const company = companyConfigs[params.company as keyof typeof companyConfigs];
 
   if (!company) {
     router.push("/");
