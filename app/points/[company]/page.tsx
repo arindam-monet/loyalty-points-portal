@@ -102,7 +102,7 @@ export default function PointsPage({
 
         <PointsDisplay
           data={data}
-          company={params.company}
+          company={params.company as "techcorp" | "retailmax" | "skyhigh"}
           pointsLabel={company.pointsLabel}
         />
 
