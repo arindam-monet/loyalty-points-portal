@@ -1,21 +1,13 @@
 import { NextResponse } from "next/server";
 import clientPromise from "@/lib/mongodb";
-
 import { type NextRequest } from "next/server";
+
 const API_KEY = process.env.API_KEY || "123456789";
 const DB_NAME = "loyalty-program";
 const COLLECTION_NAME = "loyalty-points";
+const COMPANY_ID = "CompanyA";
 
 export const dynamic = "force-dynamic";
-
-// Middleware to validate API key
-const validateApiKey = (request: Request) => {
-  const apiKey = request.headers.get("API-KEY");
-  if (!apiKey || apiKey !== API_KEY) {
-    return false;
-  }
-  return true;
-};
 
 export async function GET(request: NextRequest) {
   if (!validateApiKey(request)) {
@@ -26,12 +18,11 @@ export async function GET(request: NextRequest) {
   }
 
   const searchParams = request.nextUrl.searchParams;
-  const companyId = searchParams.get("companyId");
   const email = searchParams.get("email");
 
-  if (!companyId || !email) {
+  if (!email) {
     return NextResponse.json(
-      { message: "Company ID and email query parameters are required." },
+      { message: "Email parameter is required." },
       { status: 400 }
     );
   }
@@ -42,7 +33,7 @@ export async function GET(request: NextRequest) {
 
     const companyDoc = await db
       .collection(COLLECTION_NAME)
-      .findOne({ companyId });
+      .findOne({ companyId: COMPANY_ID });
     if (!companyDoc) {
       return NextResponse.json(
         { message: "Company not found." },
@@ -60,9 +51,13 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    return NextResponse.json(customer.points);
+    return NextResponse.json({
+      points: customer.points,
+      tier: customer.tier,
+      companyName: "TechCorp Solutions",
+    });
   } catch (err) {
-    console.error("Error fetching loyalty points:", err);
+    console.error("Error fetching points:", err);
     return NextResponse.json(
       { message: "Internal server error." },
       { status: 500 }
@@ -79,15 +74,13 @@ export async function PUT(request: Request) {
   }
 
   const { searchParams } = new URL(request.url);
-  const companyId = searchParams.get("companyId");
   const email = searchParams.get("email");
-
   const body = await request.json();
   const { points, expiry } = body;
 
-  if (!companyId || !email || points === undefined || !expiry) {
+  if (!email || points === undefined || !expiry) {
     return NextResponse.json(
-      { message: "Company ID, email, points, and expiry are required." },
+      { message: "Email, points, and expiry are required." },
       { status: 400 }
     );
   }
@@ -96,50 +89,8 @@ export async function PUT(request: Request) {
     const client = await clientPromise;
     const db = client.db(DB_NAME);
 
-    const companyDoc = await db
-      .collection(COLLECTION_NAME)
-      .findOne({ companyId });
-    if (!companyDoc) {
-      return NextResponse.json(
-        { message: "Company not found." },
-        { status: 404 }
-      );
-    }
-
-    const customer = companyDoc.customers.find(
-      (customer: any) => customer.email === email
-    );
-    if (!customer) {
-      return NextResponse.json(
-        { message: "Customer not found." },
-        { status: 404 }
-      );
-    }
-
-    // Calculate the current total points
-    const currentPoints = customer.points.reduce(
-      (total: number, entry: any) => {
-        const expiryDate = new Date(entry.expiry);
-        const currentDate = new Date();
-        if (expiryDate > currentDate) {
-          return total + entry.points;
-        }
-        return total;
-      },
-      0
-    );
-
-    // Check if the new total would be negative
-    if (currentPoints + points < 0) {
-      return NextResponse.json(
-        { message: "Total points cannot be negative." },
-        { status: 400 }
-      );
-    }
-
-    // Update the customer's points
-    const updateResult = await db.collection(COLLECTION_NAME).updateOne(
-      { companyId, "customers.email": email },
+    const result = await db.collection(COLLECTION_NAME).updateOne(
+      { companyId: COMPANY_ID, "customers.email": email },
       {
         $push: {
           "customers.$.points": { points, expiry: new Date(expiry) },
@@ -148,13 +99,19 @@ export async function PUT(request: Request) {
     );
 
     return NextResponse.json({
-      message: "Loyalty points updated successfully.",
+      message: "Points updated successfully.",
+      programName: "TechCorp Rewards",
     });
   } catch (err) {
-    console.error("Error updating loyalty points:", err);
+    console.error("Error updating points:", err);
     return NextResponse.json(
       { message: "Internal server error." },
       { status: 500 }
     );
   }
+}
+
+function validateApiKey(request: Request) {
+  const apiKey = request.headers.get("API-KEY");
+  return apiKey === API_KEY;
 }

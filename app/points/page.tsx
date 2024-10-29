@@ -26,19 +26,13 @@ export default function PointsPage() {
 
     const fetchPoints = async () => {
       try {
-        const response = await fetch(
-          `/api/points?email=${encodeURIComponent(
-            email
-          )}&companyId=${encodeURIComponent("CompanyA")}`,
-          {
-            headers: {
-              "Content-Type": "application/json",
-              "API-KEY": process.env.API_KEY || "123456789",
-            },
-          }
-        );
+        const response = await fetch(`/api/points?email=${email}`, {
+          headers: {
+            "Content-Type": "application/json",
+            "API-KEY": process.env.API_KEY || "123456789",
+          },
+        });
         const data = await response.json();
-        console.log("Fetched points:", data);
         setPoints(data);
       } catch (error) {
         console.error("Failed to fetch points:", error);
@@ -55,9 +49,6 @@ export default function PointsPage() {
   };
 
   const calculateTotalPoints = () => {
-    if (!Array.isArray(points)) {
-      return 0;
-    }
     return points.reduce((total, entry) => {
       const expiryDate = new Date(entry.expiry);
       const currentDate = new Date();
@@ -108,32 +99,30 @@ export default function PointsPage() {
           <h3 className="text-xl font-semibold text-gray-900 mb-4">
             Points History
           </h3>
-          {points != null &&
-            Array.isArray(points) &&
-            points.map((entry, index) => (
-              <Card key={index} className="p-4 transition-all hover:shadow-md">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <p className="text-lg font-semibold text-gray-900">
-                      {entry.points > 0 ? "+" : ""}
-                      {entry.points} points
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      Expires: {new Date(entry.expiry).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <div
-                    className={`px-3 py-1 rounded-full ${
-                      new Date(entry.expiry) > new Date()
-                        ? "bg-green-100 text-green-800"
-                        : "bg-red-100 text-red-800"
-                    }`}
-                  >
-                    {new Date(entry.expiry) > new Date() ? "Active" : "Expired"}
-                  </div>
+          {points.map((entry, index) => (
+            <Card key={index} className="p-4 transition-all hover:shadow-md">
+              <div className="flex justify-between items-center">
+                <div>
+                  <p className="text-lg font-semibold text-gray-900">
+                    {entry.points > 0 ? "+" : ""}
+                    {entry.points} points
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    Expires: {new Date(entry.expiry).toLocaleDateString()}
+                  </p>
                 </div>
-              </Card>
-            ))}
+                <div
+                  className={`px-3 py-1 rounded-full ${
+                    new Date(entry.expiry) > new Date()
+                      ? "bg-green-100 text-green-800"
+                      : "bg-red-100 text-red-800"
+                  }`}
+                >
+                  {new Date(entry.expiry) > new Date() ? "Active" : "Expired"}
+                </div>
+              </div>
+            </Card>
+          ))}
 
           {points.length === 0 && (
             <Card className="p-6 text-center text-gray-600">

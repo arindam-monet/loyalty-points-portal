@@ -1,23 +1,13 @@
 import { NextResponse } from "next/server";
 import clientPromise from "@/lib/mongodb";
 
-import { type NextRequest } from "next/server";
 const API_KEY = process.env.API_KEY || "123456789";
 const DB_NAME = "loyalty-program";
 const COLLECTION_NAME = "loyalty-points";
-
+const COMPANY_ID = "company2"; // Specific to this rewards program
 export const dynamic = "force-dynamic";
 
-// Middleware to validate API key
-const validateApiKey = (request: Request) => {
-  const apiKey = request.headers.get("API-KEY");
-  if (!apiKey || apiKey !== API_KEY) {
-    return false;
-  }
-  return true;
-};
-
-export async function GET(request: NextRequest) {
+export async function GET(request: Request) {
   if (!validateApiKey(request)) {
     return NextResponse.json(
       { message: "Forbidden: Invalid API key." },
@@ -25,13 +15,12 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const searchParams = request.nextUrl.searchParams;
-  const companyId = searchParams.get("companyId");
+  const { searchParams } = new URL(request.url);
   const email = searchParams.get("email");
 
-  if (!companyId || !email) {
+  if (!email) {
     return NextResponse.json(
-      { message: "Company ID and email query parameters are required." },
+      { message: "Email parameter is required." },
       { status: 400 }
     );
   }
@@ -42,7 +31,7 @@ export async function GET(request: NextRequest) {
 
     const companyDoc = await db
       .collection(COLLECTION_NAME)
-      .findOne({ companyId });
+      .findOne({ companyId: COMPANY_ID });
     if (!companyDoc) {
       return NextResponse.json(
         { message: "Company not found." },
@@ -62,7 +51,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(customer.points);
   } catch (err) {
-    console.error("Error fetching loyalty points:", err);
+    console.error("Error fetching rewards points:", err);
     return NextResponse.json(
       { message: "Internal server error." },
       { status: 500 }
@@ -79,15 +68,13 @@ export async function PUT(request: Request) {
   }
 
   const { searchParams } = new URL(request.url);
-  const companyId = searchParams.get("companyId");
   const email = searchParams.get("email");
-
   const body = await request.json();
   const { points, expiry } = body;
 
-  if (!companyId || !email || points === undefined || !expiry) {
+  if (!email || points === undefined || !expiry) {
     return NextResponse.json(
-      { message: "Company ID, email, points, and expiry are required." },
+      { message: "Email, points, and expiry are required." },
       { status: 400 }
     );
   }
@@ -98,7 +85,7 @@ export async function PUT(request: Request) {
 
     const companyDoc = await db
       .collection(COLLECTION_NAME)
-      .findOne({ companyId });
+      .findOne({ companyId: COMPANY_ID });
     if (!companyDoc) {
       return NextResponse.json(
         { message: "Company not found." },
@@ -116,7 +103,6 @@ export async function PUT(request: Request) {
       );
     }
 
-    // Calculate the current total points
     const currentPoints = customer.points.reduce(
       (total: number, entry: any) => {
         const expiryDate = new Date(entry.expiry);
@@ -129,7 +115,6 @@ export async function PUT(request: Request) {
       0
     );
 
-    // Check if the new total would be negative
     if (currentPoints + points < 0) {
       return NextResponse.json(
         { message: "Total points cannot be negative." },
@@ -137,9 +122,8 @@ export async function PUT(request: Request) {
       );
     }
 
-    // Update the customer's points
-    const updateResult = await db.collection(COLLECTION_NAME).updateOne(
-      { companyId, "customers.email": email },
+    await db.collection(COLLECTION_NAME).updateOne(
+      { companyId: COMPANY_ID, "customers.email": email },
       {
         $push: {
           "customers.$.points": { points, expiry: new Date(expiry) },
@@ -148,13 +132,18 @@ export async function PUT(request: Request) {
     );
 
     return NextResponse.json({
-      message: "Loyalty points updated successfully.",
+      message: "Rewards points updated successfully.",
     });
   } catch (err) {
-    console.error("Error updating loyalty points:", err);
+    console.error("Error updating rewards points:", err);
     return NextResponse.json(
       { message: "Internal server error." },
       { status: 500 }
     );
   }
+}
+
+function validateApiKey(request: Request) {
+  const apiKey = request.headers.get("API-KEY");
+  return apiKey === API_KEY;
 }
