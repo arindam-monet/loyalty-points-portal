@@ -1,21 +1,25 @@
-'use client';
+"use client";
 
-import { Card } from '@/components/ui/card';
-import { Gift, Plane, ShoppingBag } from 'lucide-react';
+import { Card } from "@/components/ui/card";
+import { Gift, Plane, ShoppingBag } from "lucide-react";
 
 const icons = {
   techcorp: Gift,
   retailmax: ShoppingBag,
-  skyhigh: Plane
+  skyhigh: Plane,
 };
 
 interface PointsDisplayProps {
   data: any;
-  company: string;
+  company: "techcorp" | "retailmax" | "skyhigh";
   pointsLabel: string;
 }
 
-export function PointsDisplay({ data, company, pointsLabel }: PointsDisplayProps) {
+export function PointsDisplay({
+  data,
+  company,
+  pointsLabel,
+}: PointsDisplayProps) {
   const Icon = icons[company];
 
   const calculateTotal = () => {
