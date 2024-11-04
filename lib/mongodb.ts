@@ -2,7 +2,7 @@ import { MongoClient } from 'mongodb';
 
 
 
-const uri = process.env.MONGODB_URI || 'https://mongodb-typescript-api.onrender.com';
+const uri = process.env.MONGODB_URI || 'mongodb://sandbox-shard-00-00.9hxtk.mongodb.net:27017';
 const options = {};
 
 if (!uri) {
