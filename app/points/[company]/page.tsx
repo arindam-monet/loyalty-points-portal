@@ -2,18 +2,19 @@
 
 import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { LogOut, Gift, Plane, ShoppingBag } from "lucide-react";
 import { PointsDisplay } from "@/components/points-display";
 import { PointsHistory } from "@/components/points-history";
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://mongodb-typescript-api.onrender.com';
 
 const companyConfigs = {
   techcorp: {
     name: "TechCorp Solutions",
     icon: Gift,
     color: "text-blue-600",
-    apiPath: "/api/company1/points",
+    apiPath: `${API_BASE_URL}/Company1/api/point_details`,
     pointsLabel: "Points",
   },
   retailmax: {
