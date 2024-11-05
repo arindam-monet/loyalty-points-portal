@@ -23,7 +23,8 @@ const companyConfigs = {
     name: "TechCorp Solutions",
     icon: Gift,
     color: "text-blue-600",
-    apiPath: `${API_BASE_URL}/Company1/api/point_details`,
+    apiPathTotalPoints: `${API_BASE_URL}/Company1/api/total_points`,
+    apiPathPointDetails: `${API_BASE_URL}/Company1/api/points_details`,
     pointsLabel: "Points",
     apiKey: API_KEYS.API_KEY_COMPANY1,
   },
@@ -31,7 +32,8 @@ const companyConfigs = {
     name: "RetailMax Stores",
     icon: ShoppingBag,
     color: "text-emerald-600",
-    apiPath: "/api/company2/rewards",
+    apiPathTotalPoints: `${API_BASE_URL}/Company2/api/total_points`,
+    apiPathPointDetails: `${API_BASE_URL}/Company2/api/points_details`,
     pointsLabel: "Rewards",
     apiKey: API_KEYS.API_KEY_COMPANY2,
   },
@@ -39,7 +41,8 @@ const companyConfigs = {
     name: "SkyHigh Airlines",
     icon: Plane,
     color: "text-indigo-600",
-    apiPath: "/api/company3/miles",
+    apiPathTotalPoints: `${API_BASE_URL}/Company3/api/total_points`,
+    apiPathPointDetails: `${API_BASE_URL}/Company3/api/points_details`,
     pointsLabel: "Miles",
     apiKey: API_KEYS.API_KEY_COMPANY3,
   },
@@ -47,7 +50,8 @@ const companyConfigs = {
     name: "HealthPlus Insurance",
     icon: Gift,
     color: "text-blue-600",
-    apiPath: "/api/company4/points",
+    apiPathTotalPoints: `${API_BASE_URL}/Company4/api/total_points`,
+    apiPathPointDetails: `${API_BASE_URL}/Company4/api/points_details`,
     pointsLabel: "Points",
     apiKey: API_KEYS.API_KEY_COMPANY4,
   },
@@ -59,6 +63,7 @@ export default function PointsPage({
   params: { company: string };
 }) {
   const [data, setData] = useState<any>(null);
+  const [totalPoints, setTotalPoints] = useState(0);
   const [loading, setLoading] = useState(true);
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -73,15 +78,18 @@ export default function PointsPage({
   const Icon = company.icon;
 
   useEffect(() => {
-    const fetchPoints = async () => {
+    const fetchPointDetails = async () => {
       try {
         const queryString = searchParams.toString();
-        const response = await fetch(`${company.apiPath}?${queryString}`, {
-          headers: {
-            "Content-Type": "application/json",
-            "api-key": company.apiKey,
-          },
-        });
+        const response = await fetch(
+          `${company.apiPathPointDetails}?${queryString}`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              "api-key": company.apiKey,
+            },
+          }
+        );
         const data = await response.json();
         setData(data);
       } catch (error) {
@@ -91,8 +99,33 @@ export default function PointsPage({
       }
     };
 
-    fetchPoints();
-  }, [searchParams, company.apiPath]);
+    const fetchTotalPoints = async () => {
+      try {
+        const queryString = searchParams.toString();
+        const response = await fetch(
+          `${company.apiPathTotalPoints}?${queryString}`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              "api-key": company.apiKey,
+            },
+          }
+        );
+        const data = await response.json();
+        setTotalPoints(data.totalPoints);
+      } catch (error) {
+        console.error("Failed to fetch total points:", error);
+      }
+    };
+
+    fetchPointDetails();
+    fetchTotalPoints();
+  }, [
+    searchParams,
+    company.apiPathPointDetails,
+    company.apiPathTotalPoints,
+    company.apiKey,
+  ]);
 
   if (loading) {
     return (
@@ -122,8 +155,14 @@ export default function PointsPage({
         </div>
 
         <PointsDisplay
-          data={data}
-          company={params.company as "techcorp" | "retailmax" | "skyhigh"}
+          points={totalPoints}
+          company={
+            params.company as
+              | "techcorp"
+              | "retailmax"
+              | "skyhigh"
+              | "healthplus"
+          }
           pointsLabel={company.pointsLabel}
         />
 
