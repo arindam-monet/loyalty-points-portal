@@ -7,7 +7,16 @@ import { LogOut, Gift, Plane, ShoppingBag } from "lucide-react";
 import { PointsDisplay } from "@/components/points-display";
 import { PointsHistory } from "@/components/points-history";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://mongodb-typescript-api.onrender.com';
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  "https://mongodb-typescript-api.onrender.com";
+
+const API_KEYS = {
+  API_KEY_COMPANY1: "ynyuwjkjkhpmrjccocaqqcfcpurmmsqb",
+  API_KEY_COMPANY2: "ztmxiyxsjhhmeihpjorzqmnwvsnjjocn",
+  API_KEY_COMPANY3: "lcbrvkeqamxeuasabljjetkudbmajneb",
+  API_KEY_COMPANY4: "dtqcehahwitpgqsaxzwkcpszabmtxidc",
+};
 
 const companyConfigs = {
   techcorp: {
@@ -16,6 +25,7 @@ const companyConfigs = {
     color: "text-blue-600",
     apiPath: `${API_BASE_URL}/Company1/api/point_details`,
     pointsLabel: "Points",
+    apiKey: API_KEYS.API_KEY_COMPANY1,
   },
   retailmax: {
     name: "RetailMax Stores",
@@ -23,6 +33,7 @@ const companyConfigs = {
     color: "text-emerald-600",
     apiPath: "/api/company2/rewards",
     pointsLabel: "Rewards",
+    apiKey: API_KEYS.API_KEY_COMPANY2,
   },
   skyhigh: {
     name: "SkyHigh Airlines",
@@ -30,6 +41,15 @@ const companyConfigs = {
     color: "text-indigo-600",
     apiPath: "/api/company3/miles",
     pointsLabel: "Miles",
+    apiKey: API_KEYS.API_KEY_COMPANY3,
+  },
+  healthplus: {
+    name: "HealthPlus Insurance",
+    icon: Gift,
+    color: "text-blue-600",
+    apiPath: "/api/company4/points",
+    pointsLabel: "Points",
+    apiKey: API_KEYS.API_KEY_COMPANY4,
   },
 };
 
@@ -59,7 +79,7 @@ export default function PointsPage({
         const response = await fetch(`${company.apiPath}?${queryString}`, {
           headers: {
             "Content-Type": "application/json",
-            "API-KEY": process.env.API_KEY || "123456789",
+            "api-key": company.apiKey,
           },
         });
         const data = await response.json();
